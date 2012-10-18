@@ -9,8 +9,7 @@ Public Class MainForm
 
     Private Sub getHtmlButton_Click(sender As Object, e As EventArgs) Handles getHtmlButton.Click
         listBox.Items.Clear()
-        _webRequest = DirectCast(WebRequest.Create("http://www.gutenberg.org/files/1497/1497.txt"), HttpWebRequest)
-        BackgroundWorker.RunWorkerAsync(_webRequest)
+        BackgroundWorker.RunWorkerAsync()
         getHtmlButton.Enabled = False
         progressBar.Value = 0
         progressBar.Visible = True
@@ -38,21 +37,22 @@ Public Class MainForm
 
     Private Sub BackgroundWorker_DoWork(sender As Object, e As System.ComponentModel.DoWorkEventArgs) _
         Handles BackgroundWorker.DoWork
+        _webRequest = DirectCast(WebRequest.Create("http://www.gutenberg.org/files/1497/1497.txt"), HttpWebRequest)
         Dim progress As Integer = 1
         Dim backgroundWokrer As BackgroundWorker = DirectCast(sender, BackgroundWorker)
         backgroundWokrer.ReportProgress(progress)
-        Dim request As HttpWebRequest = DirectCast(e.Argument, HttpWebRequest)
+
         Try
-            Dim response As WebResponse = request.GetResponse()
+            Dim response As WebResponse = _webRequest.GetResponse()
             Dim stream As Stream = response.GetResponseStream()
             Dim numArray(1024000) As Byte
             Dim asyncResult As IAsyncResult = StreamHelper.
                     BeginReadStreamToEnd(stream, numArray, 0,
                                          CInt(numArray.Length),
                                          Sub(ar As IAsyncResult)
-                                         Dim bytesRead As Integer = StreamHelper.EndReadStreamToEnd(ar)
-                                         Array.Resize(Of Byte)(numArray, bytesRead)
-                                     End Sub, stream)
+                                             Dim bytesRead As Integer = StreamHelper.EndReadStreamToEnd(ar)
+                                             Array.Resize(Of Byte)(numArray, bytesRead)
+                                         End Sub, stream)
 
             While False = asyncResult.AsyncWaitHandle.WaitOne(200)
                 BackgroundWorker.ReportProgress(progress)

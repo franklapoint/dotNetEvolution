@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace WindowsFormsApplication4
@@ -18,33 +19,41 @@ namespace WindowsFormsApplication4
 
 		private void getHtmlButton_Click(object sender, EventArgs e)
 		{
-			byte[] inputBuffer = new byte[1024000];
-
-			var webRequest =
-				(HttpWebRequest) WebRequest.Create("http://google.ca");
-			webRequest.
-				BeginGetResponse(asyncResult =>
-				                 {
-				                 	WebResponse response = webRequest.EndGetResponse(asyncResult);
-				                 	Stream stream = response.GetResponseStream();
-				                 	if (stream == null) return;
-				                 	stream.BeginReadToEnd(inputBuffer,
-				                 	                      0,
-				                 	                      inputBuffer.Length,
-				                 	                      readAsyncResult =>
-				                 	                      {
-				                 	                      	int bytesRead = stream.EndReadToEnd(readAsyncResult);
-				                 	                      	Trace.WriteLine(string.Format("Read {0} bytes", bytesRead));
-				                 	                      	string text = Encoding.ASCII.GetString(inputBuffer, 0,
-				                 	                      	                                       bytesRead);
-				                 	                      	SetData(text);
-				                 	                      	EnableButton();
-				                 	                      }, stream);
-				                 }, webRequest);
-			getHtmlButton.Enabled = false;
+		    ThreadPool.QueueUserWorkItem(_=>StartRequest());
+		    getHtmlButton.Enabled = false;
 		}
 
-		private void SetData(string html)
+        private void StartRequest()
+        {
+            byte[] inputBuffer = new byte[1024000];
+
+            var webRequest =
+                (HttpWebRequest) WebRequest.Create("http://google.ca");
+            webRequest.
+                BeginGetResponse(asyncResult =>
+                                     {
+                                         WebResponse response = webRequest.EndGetResponse(asyncResult);
+                                         Stream stream = response.GetResponseStream();
+                                         if (stream == null) return;
+                                         stream.
+                                             BeginReadToEnd(inputBuffer,
+                                                            0,
+                                                            inputBuffer.Length,
+                                                            readAsyncResult =>
+                                                                {
+                                                                    int bytesRead = stream.EndReadToEnd(readAsyncResult);
+                                                                    Trace.WriteLine(string.Format("Read {0} bytes",
+                                                                                                  bytesRead));
+                                                                    string text = Encoding.ASCII.GetString(inputBuffer,
+                                                                                                           0,
+                                                                                                           bytesRead);
+                                                                    SetData(text);
+                                                                    EnableButton();
+                                                                }, stream);
+                                     }, webRequest);
+        }
+
+	    private void SetData(string html)
 		{
 			if (String.IsNullOrEmpty(html)) return;
 
@@ -79,10 +88,6 @@ namespace WindowsFormsApplication4
 				string scriptBody = match.Groups["scriptBody"].Value;
 				yield return scriptBody;
 			}
-			//uint unsignedNumber = 1;
-			//int signedNumber = 2;
-			//var x = unsignedNumber*signedNumber;
-			//var someType = new {X = 10, Y = 12};
 		}
 	}
 }

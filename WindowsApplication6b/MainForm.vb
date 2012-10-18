@@ -11,11 +11,20 @@ Public Class MainForm
     Private Sub getHtmlButton_Click(sender As Object, e As EventArgs) Handles getHtmlButton.Click
         _cancellationTokenSource = New CancellationTokenSource
         _cancellationToken = _cancellationTokenSource.Token
+        ThreadPool.QueueUserWorkItem(New WaitCallback(AddressOf StartRequest))
 
+        getHtmlButton.Enabled = False
+        progressBar.Enabled = True
+        progressBar.Visible = True
+        cancelButton.Enabled = True
+        cancelButton.Visible = True
+    End Sub
+
+    Private Sub StartRequest()
         Dim inputBuffer(1024000) As Byte
 
         Dim request As HttpWebRequest =
-                (DirectCast(WebRequest.Create("http://en.wikipedia.org/wiki/Line_of_succession_to_the_British_throne"),
+                (DirectCast(WebRequest.Create("http://en.wikipedia.org/wiki/Line_of_succession_to_the_British_throne"), 
                             HttpWebRequest))
 
         request.
@@ -52,11 +61,6 @@ Public Class MainForm
                                         cancelButton.Visible = False
                                     End Sub, ui)
                 End Sub, request)
-        getHtmlButton.Enabled = False
-        progressBar.Enabled = True
-        progressBar.Visible = True
-        cancelButton.Enabled = True
-        cancelButton.Visible = True
     End Sub
 
     Private Sub cancelButton_Click(sender As Object, e As EventArgs) Handles cancelButton.Click

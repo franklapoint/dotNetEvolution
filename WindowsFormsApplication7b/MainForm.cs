@@ -34,13 +34,13 @@ namespace WindowsFormsApplication7b
             cancellationTokenSource = new CancellationTokenSource();
             cancellationToken = cancellationTokenSource.Token;
 
-            HttpWebRequest webRequest =
-                (HttpWebRequest)WebRequest.Create("http://en.wikipedia.org/wiki/Line_of_succession_to_the_British_throne");
             getHtmlButton.Enabled = false;
             progressBar.Value = 0;
             progressBar.Visible = true;
             cancelButton.Enabled = true;
             cancelButton.Visible = true;
+
+            HttpWebRequest webRequest = await StartRequestAsync();
 
             byte[] inputBuffer;
             int index = 0;
@@ -97,6 +97,16 @@ namespace WindowsFormsApplication7b
         void progress_ProgressChanged(object sender, int e)
         {
             progressBar.Value = e;
+        }
+
+        private static Task<HttpWebRequest> StartRequestAsync()
+        {
+            return
+                Task.Factory.
+                    StartNew(
+                        () =>
+                        (HttpWebRequest)
+                        WebRequest.Create("http://en.wikipedia.org/wiki/Line_of_succession_to_the_British_throne"));
         }
 
         private static IEnumerable<string> GetScriptBodies(string html)

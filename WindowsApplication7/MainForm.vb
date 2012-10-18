@@ -8,10 +8,8 @@ Public Class MainForm
     Private Async Sub getHtmlButton_Click(sender As Object, e As EventArgs) Handles getHtmlButton.Click
         Dim inputBuffer(1024000) As Byte
 
-        Dim webRequest As HttpWebRequest = DirectCast(
-            Net.WebRequest.Create("http://www.microsoft.com/en/us/default.aspx"), 
-            HttpWebRequest)
         getHtmlButton.Enabled = False
+        Dim webRequest As HttpWebRequest = Await StartRequestAsync()
         Dim response As WebResponse = Await webRequest.GetResponseAsync()
         Dim stream As Stream = response.GetResponseStream()
         Dim index As Integer = 0
@@ -32,6 +30,10 @@ Public Class MainForm
         getHtmlButton.Enabled = True
 
     End Sub
+
+    Private Function StartRequestAsync() As Task(Of HttpWebRequest)
+        Return Task.Factory.StartNew(Function() DirectCast(Net.WebRequest.Create("http://google.ca"), HttpWebRequest))
+    End Function
 
     Private Shared Iterator Function GetScriptBodies(html As String) As IEnumerable(Of String)
         Const pattern As String = "<script.*?>\s*(?'scriptBody'.+?)\s*</script>"

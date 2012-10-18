@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace WindowsFormsApplication3
@@ -18,32 +19,43 @@ namespace WindowsFormsApplication3
 
 		private void getHtmlButton_Click(object sender, EventArgs e)
 		{
-			byte[] inputBuffer = new byte[1024000];
-
-			HttpWebRequest webRequest = 
-				(HttpWebRequest)WebRequest.Create("http://google.ca");
-			webRequest.BeginGetResponse(delegate(IAsyncResult asyncResult)
-			                            {
-			                            	WebResponse response = webRequest.EndGetResponse(asyncResult);
-			                            	Stream stream = response.GetResponseStream();
-			                            	if (stream == null) return;
-			                            	StreamHelper.BeginReadStreamToEnd(stream,
-			                            	                     inputBuffer,
-			                            	                     0,
-			                            	                     inputBuffer.Length,
-																 delegate(IAsyncResult readAsyncResult)
-																 {
-			                            	                     	int bytesRead = StreamHelper.EndReadStreamToEnd(readAsyncResult);
-			                            	                     	Trace.WriteLine(string.Format("Read {0} bytes", bytesRead));
-																	string text = Encoding.ASCII.GetString(inputBuffer, 0, bytesRead);
-			                            	                     	SetData(text);
-			                            	                     	EnableButton();
-			                            	                     }, stream);
-			                            }, webRequest);
-			getHtmlButton.Enabled = false;
+		    ThreadPool.QueueUserWorkItem(StartRequest);
+		    getHtmlButton.Enabled = false;
 		}
 
-		private delegate void SetHtmlDelegate(string html);
+	    private void StartRequest(object o)
+	    {
+	        byte[] inputBuffer = new byte[1024000];
+
+	        HttpWebRequest webRequest =
+	            (HttpWebRequest) WebRequest.Create("http://google.ca");
+	        webRequest.BeginGetResponse(delegate(IAsyncResult asyncResult)
+	                                        {
+	                                            WebResponse response = webRequest.EndGetResponse(asyncResult);
+	                                            Stream stream = response.GetResponseStream();
+	                                            if (stream == null) return;
+	                                            StreamHelper.BeginReadStreamToEnd(stream,
+	                                                                              inputBuffer,
+	                                                                              0,
+	                                                                              inputBuffer.Length,
+	                                                                              delegate(IAsyncResult readAsyncResult)
+	                                                                                  {
+	                                                                                      int bytesRead =
+	                                                                                          StreamHelper.EndReadStreamToEnd(
+	                                                                                              readAsyncResult);
+	                                                                                      Trace.WriteLine(
+	                                                                                          string.Format("Read {0} bytes",
+	                                                                                                        bytesRead));
+	                                                                                      string text =
+	                                                                                          Encoding.ASCII.GetString(
+	                                                                                              inputBuffer, 0, bytesRead);
+	                                                                                      SetData(text);
+	                                                                                      EnableButton();
+	                                                                                  }, stream);
+	                                        }, webRequest);
+	    }
+
+	    private delegate void SetHtmlDelegate(string html);
 
 		private void SetData(string html)
 		{
@@ -60,6 +72,16 @@ namespace WindowsFormsApplication3
 				listBox.Items.Add(x);
 		}
 
+		private void EnableButton()
+		{
+			if (InvokeRequired)
+			{
+				BeginInvoke((MethodInvoker)EnableButton); // method group instead of lambda
+				return;
+			}
+			getHtmlButton.Enabled = true;
+		}
+
 		private static IEnumerable<string> GetScriptBodies(string html)
 		{
 			const string pattern = @"<script.*?>\s*(?'scriptBody'.+?)\s*</script>";
@@ -71,16 +93,6 @@ namespace WindowsFormsApplication3
 				yield return scriptBody;
 			}
 			yield break;
-		}
-
-		private void EnableButton()
-		{
-			if (InvokeRequired)
-			{
-				BeginInvoke((MethodInvoker)EnableButton); // method group instead of lambda
-				return;
-			}
-			getHtmlButton.Enabled = true;
 		}
 	}
 }

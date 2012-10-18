@@ -20,10 +20,8 @@ namespace WindowsFormsApplication3c
 		private void getHtmlButton_Click(object sender, EventArgs e)
 		{
 			listBox.Items.Clear();
-			webRequest =
-				(HttpWebRequest)WebRequest.Create("http://www.gutenberg.org/files/1497/1497.txt");
 
-			backgroundWorker.RunWorkerAsync(webRequest);
+			backgroundWorker.RunWorkerAsync();
 
 			getHtmlButton.Enabled = false;
 			progressBar.Value = 0;
@@ -34,12 +32,13 @@ namespace WindowsFormsApplication3c
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             int progress = 1;
-            var backgroundWokrer = (BackgroundWorker) sender;
-            backgroundWokrer.ReportProgress(progress);
-            var request = (HttpWebRequest) e.Argument;
+            var backgroundWorker = (BackgroundWorker) sender;
+            backgroundWorker.ReportProgress(progress);
+            webRequest =
+                (HttpWebRequest)WebRequest.Create("http://www.gutenberg.org/files/1497/1497.txt");
             try
             {
-                var response = request.GetResponse();
+                var response = webRequest.GetResponse();
                 var stream = response.GetResponseStream();
                 byte[] inputBuffer = new byte[1024000];
                 var asyncResult = StreamHelper.
@@ -52,13 +51,13 @@ namespace WindowsFormsApplication3c
 
                 while (false == asyncResult.AsyncWaitHandle.WaitOne(200))
                 {
-                    backgroundWokrer.ReportProgress(progress);
+                    backgroundWorker.ReportProgress(progress);
                     progress += (100 - progress)/2;
-                    if (!backgroundWokrer.CancellationPending) continue;
+                    if (!backgroundWorker.CancellationPending) continue;
                     e.Cancel = true;
                     return;
                 }
-                backgroundWokrer.ReportProgress(100);
+                backgroundWorker.ReportProgress(100);
                 e.Result = Encoding.ASCII.GetString(inputBuffer, 0, inputBuffer.Length);
             }
             catch (WebException ex)
@@ -90,6 +89,14 @@ namespace WindowsFormsApplication3c
 		    }
 		}
 
+		private void cancelButton_Click(object sender, EventArgs e)
+		{
+			var request = webRequest;
+			if (request == null) return;
+			backgroundWorker.CancelAsync();
+			request.Abort();
+		}
+
 		private static IEnumerable<string> GetScriptBodies(string html)
 		{
 			const string pattern = @"<script.*?>\s*(?'scriptBody'.+?)\s*</script>";
@@ -104,14 +111,6 @@ namespace WindowsFormsApplication3c
 				}
 			}
 			yield break;
-		}
-
-		private void cancelButton_Click(object sender, EventArgs e)
-		{
-			var request = webRequest;
-			if (request == null) return;
-			backgroundWorker.CancelAsync();
-			request.Abort();
 		}
 	}
 }

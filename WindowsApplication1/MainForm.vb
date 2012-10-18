@@ -2,6 +2,7 @@
 Imports System.IO
 Imports System.Text
 Imports System.Text.RegularExpressions
+Imports System.Threading
 
 Public Class MainForm
     Inherits Windows.Forms.Form
@@ -13,12 +14,16 @@ Public Class MainForm
     Private ReadOnly finalBuffer(1024000) As Byte
 
     Private Sub getHtmlButton_Click(sender As Object, e As EventArgs) Handles getHtmlButton.Click
-        Dim webRequest As HttpWebRequest = DirectCast(
-            Net.WebRequest.Create("http://www.microsoft.com/en/us/default.aspx"), 
+        ThreadPool.QueueUserWorkItem(New WaitCallback(AddressOf StartRequest))
+        getHtmlButton.Enabled = False
+    End Sub
+
+    Private Sub StartRequest()
+        Dim webRequest As HttpWebRequest = DirectCast( _
+            Net.WebRequest.Create("http://google.ca"),  _
             HttpWebRequest)
         webRequest.BeginGetResponse(New AsyncCallback(
-                                    AddressOf GetResponseCallback), webRequest)
-        getHtmlButton.Enabled = False
+            AddressOf GetResponseCallback), webRequest)
     End Sub
 
     Private Sub GetResponseCallback(ByVal asyncResult As IAsyncResult)
@@ -26,7 +31,10 @@ Public Class MainForm
         Dim response As WebResponse = webRequest.EndGetResponse(asyncResult)
         Dim stream As Stream = response.GetResponseStream()
         If (Not stream Is Nothing) Then
-            StreamHelper.BeginReadStreamToEnd(stream, finalBuffer, 0, CInt(finalBuffer.Length), New AsyncCallback(AddressOf ReadToEndCallback), stream)
+            StreamHelper.BeginReadStreamToEnd(stream, finalBuffer, 0, _
+                                              CInt(finalBuffer.Length), _
+                                              New AsyncCallback(AddressOf ReadToEndCallback), _
+                                              stream)
         End If
     End Sub
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace dotNetEvolution
@@ -15,8 +16,8 @@ namespace dotNetEvolution
 		{
 			byte[] inputBuffer = new byte[1024000];
 
-			HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create("http://en.wikipedia.org/wiki/Line_of_succession_to_the_British_throne");
-			getHtmlButton.Enabled = false;
+            getHtmlButton.Enabled = false;
+            var webRequest = await StartRequestAsync();
 		    int index = 0;
             using (WebResponse webResponse = await webRequest.GetResponseAsync())
             {
@@ -41,7 +42,17 @@ namespace dotNetEvolution
 			getHtmlButton.Enabled = true;
 		}
 
-		private static IEnumerable<string> GetScriptBodies(string html)
+	    private static Task<HttpWebRequest> StartRequestAsync()
+	    {
+	        return
+	            Task.Factory.
+	                StartNew(
+	                    () =>
+	                    (HttpWebRequest)
+	                    WebRequest.Create("http://en.wikipedia.org/wiki/Line_of_succession_to_the_British_throne"));
+	    }
+
+	    private static IEnumerable<string> GetScriptBodies(string html)
 		{
 			const string pattern = @"<script.*?>\s*(?'scriptBody'.+?)\s*</script>";
 			MatchCollection matches = Regex.Matches(html, pattern);

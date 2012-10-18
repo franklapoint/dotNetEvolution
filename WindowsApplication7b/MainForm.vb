@@ -12,7 +12,7 @@ Public Class MainForm
         _cancellationTokenSource = New CancellationTokenSource
         _cancellationToken = _cancellationTokenSource.Token
 
-        Dim request As HttpWebRequest = (DirectCast(WebRequest.Create("http://google.ca"), HttpWebRequest))
+        Dim request As HttpWebRequest = Await StartRequestAsync()
 
         getHtmlButton.Enabled = False
         progressBar.Value = 0
@@ -32,10 +32,9 @@ Public Class MainForm
             Dim bytesRead As Int32
             Do
                 Try
-                    Dim num1 As Integer = Await stream.ReadAsync(inputBuffer, index, inputBuffer.Length - index, _cancellationToken)
-                    Dim num2 As Integer = num1
+                    bytesRead = Await stream.ReadAsync(inputBuffer, index, inputBuffer.Length - index, _cancellationToken)
                     If (Not _cancellationToken.IsCancellationRequested) Then
-                        index = index + num2
+                        index = index + bytesRead
                         progress.Progress(index * 100 / inputBuffer.Length)
                     Else
                         Exit Do
@@ -64,6 +63,10 @@ Public Class MainForm
         cancelButton.Enabled = False
         cancelButton.Visible = False
     End Sub
+
+    Private Function StartRequestAsync() As Task(Of HttpWebRequest)
+        Return Task.Factory.StartNew(Function() DirectCast(Net.WebRequest.Create("http://en.wikipedia.org/wiki/Line_of_succession_to_the_British_throne"), HttpWebRequest))
+    End Function
 
     Private Sub progress_ProgressChanged(sender As Object, e As Int32)
         progressBar.Value = e

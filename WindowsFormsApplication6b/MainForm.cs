@@ -26,6 +26,18 @@ namespace WindowsFormsApplication6b
             cancellationTokenSource = new CancellationTokenSource();
             cancellationToken = cancellationTokenSource.Token;
 
+            var ui = TaskScheduler.FromCurrentSynchronizationContext();
+            ThreadPool.QueueUserWorkItem(_ => StartRequest(ui));
+
+            getHtmlButton.Enabled = false;
+            progressBar.Enabled = true;
+            progressBar.Visible = true;
+            cancelButton.Enabled = true;
+            cancelButton.Visible = true;
+        }
+
+        private void StartRequest(TaskScheduler ui)
+        {
             byte[] inputBuffer = new byte[1024000];
 
             HttpWebRequest webRequest =
@@ -43,8 +55,7 @@ namespace WindowsFormsApplication6b
                                                            stream.EndReadToEnd,
                                                            inputBuffer, 0, inputBuffer.Length,
                                                            stream);
-                                         if(this.InvokeRequired) BeginInvoke((MethodInvoker)(()=> progressBar.Value = 50));
-                                         var ui = TaskScheduler.FromCurrentSynchronizationContext();
+                                         if (this.InvokeRequired) BeginInvoke((MethodInvoker) (() => progressBar.Value = 50));
                                          bytesRead.
                                              ContinueWith(ar =>
                                                               {
@@ -66,11 +77,11 @@ namespace WindowsFormsApplication6b
                                                                   cancelButton.Visible = false;
                                                               }, ui);
                                      }, webRequest);
-            getHtmlButton.Enabled = false;
-            progressBar.Enabled = true;
-            progressBar.Visible = true;
-            cancelButton.Enabled = true;
-            cancelButton.Visible = true;
+        }
+
+        private void cancelButton_Click(object sender, EventArgs e)
+        {
+            cancellationTokenSource.Cancel();
         }
 
         private void SetData(string html)
@@ -92,11 +103,6 @@ namespace WindowsFormsApplication6b
                 string scriptBody = match.Groups["scriptBody"].Value;
                 yield return scriptBody;
             }
-        }
-
-        private void cancelButton_Click(object sender, EventArgs e)
-        {
-            cancellationTokenSource.Cancel();
         }
     }
 }

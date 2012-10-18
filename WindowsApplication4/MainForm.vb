@@ -2,15 +2,23 @@
 Imports System.IO
 Imports System.Text
 Imports System.Text.RegularExpressions
+Imports System.Threading
 
 Public Class MainForm
 
     Private ReadOnly finalBuffer(1024000) As Byte
 
     Private Sub getHtmlButton_Click(sender As System.Object, e As EventArgs) Handles getHtmlButton.Click
-        Dim webRequest As HttpWebRequest = DirectCast(Net.WebRequest.Create("http://www.microsoft.com/en/us/default.aspx"), HttpWebRequest)
-        webRequest.BeginGetResponse(New AsyncCallback(AddressOf GetResponseCallback), webRequest)
+        ThreadPool.QueueUserWorkItem(New WaitCallback(AddressOf StartRequest))
         getHtmlButton.Enabled = False
+    End Sub
+
+    Private Sub StartRequest()
+        Dim webRequest As HttpWebRequest = DirectCast( _
+            Net.WebRequest.Create("http://google.ca"),  _
+            HttpWebRequest)
+        webRequest.BeginGetResponse(New AsyncCallback(
+            AddressOf GetResponseCallback), webRequest)
     End Sub
 
     Private Sub GetResponseCallback(ByVal asyncResult As IAsyncResult)

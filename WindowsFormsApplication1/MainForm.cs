@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace WindowsFormsApplication1
@@ -18,13 +19,19 @@ namespace WindowsFormsApplication1
 
 		private void getHtmlButton_Click(object sender, EventArgs e)
 		{
-			HttpWebRequest webRequest = (HttpWebRequest)WebRequest.
-				Create("http://google.ca");
-			webRequest.BeginGetResponse(GetResponseCallback, webRequest);
-			getHtmlButton.Enabled = false;
+		    ThreadPool.QueueUserWorkItem(new WaitCallback(StartRequest));
+		    getHtmlButton.Enabled = false;
 		}
 
-		private ListBox listBox;
+	    private void StartRequest(object o)
+	    {
+	        HttpWebRequest webRequest =
+	            (HttpWebRequest) WebRequest.
+	                                 Create("http://google.ca");
+	        webRequest.BeginGetResponse(GetResponseCallback, webRequest);
+	    }
+
+	    private ListBox listBox;
 
 		private readonly byte[] finalBuffer = new byte[1024000];
 
@@ -64,6 +71,16 @@ namespace WindowsFormsApplication1
 				listBox.Items.Add(x);
 		}
 
+		private void EnableButton()
+		{
+			if (InvokeRequired)
+			{
+				BeginInvoke(new MethodInvoker(EnableButton));
+				return;
+			}
+			getHtmlButton.Enabled = true;
+		}
+
 		private static IEnumerable GetScriptBodies(string html)
 		{
 			const string pattern = @"<script.*?>\s*(?'scriptBody'.+?)\s*</script>";
@@ -77,16 +94,6 @@ namespace WindowsFormsApplication1
 				result[i++] = scriptBody;
 			}
 			return result;
-		}
-
-		private void EnableButton()
-		{
-			if (InvokeRequired)
-			{
-				BeginInvoke(new MethodInvoker(EnableButton));
-				return;
-			}
-			getHtmlButton.Enabled = true;
 		}
 
 		/// <summary>
