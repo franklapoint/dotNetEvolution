@@ -46,7 +46,6 @@ Public Class MainForm
         EnableButton()
     End Sub
 
-    Delegate Sub EnableButtonDelegate()
     Delegate Sub SetDataDelegate(ByVal html As String)
 
     Private Sub SetData(ByVal html As String)
@@ -69,7 +68,7 @@ Public Class MainForm
         If (Not InvokeRequired) Then
             getHtmlButton.Enabled = True
         Else
-            BeginInvoke(New EnableButtonDelegate(AddressOf EnableButton))
+            BeginInvoke(New MethodInvoker(AddressOf EnableButton))
         End If
     End Sub
 

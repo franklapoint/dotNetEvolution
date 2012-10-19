@@ -28,8 +28,8 @@ namespace WindowsFormsApplication1
 	        HttpWebRequest webRequest =
 	            (HttpWebRequest) WebRequest.
 	                                 Create("http://google.ca");
-	        webRequest.BeginGetResponse(GetResponseCallback, webRequest);
-	    }
+	        webRequest.BeginGetResponse(new AsyncCallback(GetResponseCallback), webRequest);
+        }
 
 	    private ListBox listBox;
 
@@ -42,7 +42,7 @@ namespace WindowsFormsApplication1
 			Stream stream = response.GetResponseStream();
 			if (stream == null) return;
 			StreamHelper.BeginReadStreamToEnd(stream, finalBuffer, 0, 
-				finalBuffer.Length, ReadToEndCallback, stream);
+				finalBuffer.Length, new AsyncCallback(ReadToEndCallback), stream);
 		}
 
 		private void ReadToEndCallback(IAsyncResult asyncResult)
@@ -56,22 +56,23 @@ namespace WindowsFormsApplication1
 
 		private delegate void SetHtmlDelegate(string html);
 
-		private void SetData(string html)
-		{
-			if (String.IsNullOrEmpty(html)) return;
 
-			if (InvokeRequired)
-			{
-				BeginInvoke(new SetHtmlDelegate(SetData), html);
-				return;
-			}
+        private void SetData(string html)
+        {
+            if (String.IsNullOrEmpty(html)) return;
 
-			listBox.Items.Clear();
-			foreach (string x in GetScriptBodies(html))
-				listBox.Items.Add(x);
-		}
+            if (InvokeRequired)
+            {
+                BeginInvoke(new SetHtmlDelegate(SetData), html);
+                return;
+            }
 
-		private void EnableButton()
+            listBox.Items.Clear();
+            foreach (string x in GetScriptBodies(html))
+                listBox.Items.Add(x);
+        }
+
+	    private void EnableButton()
 		{
 			if (InvokeRequired)
 			{
@@ -122,44 +123,47 @@ namespace WindowsFormsApplication1
 		/// </summary>
 		private void InitializeComponent()
 		{
-			this.getHtmlButton = new System.Windows.Forms.Button();
-			this.listBox = new System.Windows.Forms.ListBox();
-			this.SuspendLayout();
-			// 
-			// getHtmlButton
-			// 
-			this.getHtmlButton.Location = new System.Drawing.Point(12, 12);
-			this.getHtmlButton.Name = "getHtmlButton";
-			this.getHtmlButton.Size = new System.Drawing.Size(106, 23);
-			this.getHtmlButton.TabIndex = 0;
-			this.getHtmlButton.Text = "Get HTML...";
-			this.getHtmlButton.UseVisualStyleBackColor = true;
-			this.getHtmlButton.Click += new System.EventHandler(this.getHtmlButton_Click);
-			// 
-			// listBox
-			// 
-			this.listBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-			| System.Windows.Forms.AnchorStyles.Left) 
-			| System.Windows.Forms.AnchorStyles.Right)));
-			this.listBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.listBox.FormattingEnabled = true;
-			this.listBox.ItemHeight = 20;
-			this.listBox.Location = new System.Drawing.Point(12, 42);
-			this.listBox.Name = "listBox";
-			this.listBox.Size = new System.Drawing.Size(258, 184);
-			this.listBox.TabIndex = 1;
-			// 
-			// MainForm
-			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(282, 255);
-			this.Controls.Add(this.listBox);
-			this.Controls.Add(this.getHtmlButton);
-			this.Name = "MainForm";
-			this.Text = "MainForm";
-			this.Load += new System.EventHandler(this.MainForm_Load);
-			this.ResumeLayout(false);
+            this.getHtmlButton = new System.Windows.Forms.Button();
+            this.listBox = new System.Windows.Forms.ListBox();
+            this.SuspendLayout();
+            // 
+            // getHtmlButton
+            // 
+            this.getHtmlButton.Location = new System.Drawing.Point(9, 10);
+            this.getHtmlButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.getHtmlButton.Name = "getHtmlButton";
+            this.getHtmlButton.Size = new System.Drawing.Size(80, 19);
+            this.getHtmlButton.TabIndex = 0;
+            this.getHtmlButton.Text = "Get HTML...";
+            this.getHtmlButton.UseVisualStyleBackColor = true;
+            this.getHtmlButton.Click += new System.EventHandler(this.getHtmlButton_Click);
+            // 
+            // listBox
+            // 
+            this.listBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.listBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.listBox.FormattingEnabled = true;
+            this.listBox.ItemHeight = 17;
+            this.listBox.Location = new System.Drawing.Point(9, 34);
+            this.listBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.listBox.Name = "listBox";
+            this.listBox.Size = new System.Drawing.Size(307, 225);
+            this.listBox.TabIndex = 1;
+            // 
+            // MainForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(325, 297);
+            this.Controls.Add(this.listBox);
+            this.Controls.Add(this.getHtmlButton);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Name = "MainForm";
+            this.Text = "MainForm";
+            this.Load += new System.EventHandler(this.MainForm_Load);
+            this.ResumeLayout(false);
 
 		}
 

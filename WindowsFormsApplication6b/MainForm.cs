@@ -70,6 +70,10 @@ namespace WindowsFormsApplication6b
                                                                               inputBuffer, 0, ar.Result);
                                                                       SetData(text);
                                                                   }
+                                                                  else
+                                                                  {
+                                                                      MessageBox.Show("Cancelled");
+                                                                  }
                                                                   getHtmlButton.Enabled = true;
                                                                   progressBar.Enabled = true;
                                                                   progressBar.Visible = true;

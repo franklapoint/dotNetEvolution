@@ -72,7 +72,7 @@ namespace WindowsFormsApplication4
 		{
 			if (InvokeRequired)
 			{
-				BeginInvoke((MethodInvoker)EnableButton); // method group instead of lambda
+				BeginInvoke((MethodInvoker)EnableButton);
 				return;
 			}
 			getHtmlButton.Enabled = true;
