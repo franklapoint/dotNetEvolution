@@ -10,17 +10,19 @@ Public Class MainForm
 
         getHtmlButton.Enabled = False
         Dim webRequest As HttpWebRequest = Await StartRequestAsync()
-        Dim response As WebResponse = Await webRequest.GetResponseAsync()
-        Dim stream As Stream = response.GetResponseStream()
         Dim index As Integer = 0
-        Dim bytesRead As Integer
-        Do
-            bytesRead = Await stream.ReadAsync(inputBuffer, index, inputBuffer.Length - index)
-            index += bytesRead
-        Loop Until bytesRead = 0
+        Using response As WebResponse = Await webRequest.GetResponseAsync()
+            Dim stream As Stream = response.GetResponseStream()
+            Dim bytesRead As Integer
+            Do
+                bytesRead = Await stream.ReadAsync(inputBuffer, index, inputBuffer.Length - index)
+                index += bytesRead
+            Loop Until bytesRead = 0
 
-        Trace.WriteLine(String.Format("Read {0} bytes", index))
+            Trace.WriteLine(String.Format("Read {0} bytes", index))
+        End Using
         Dim html As String = Encoding.ASCII.GetString(inputBuffer, 0, index)
+
         listBox.Items.Clear()
         If (Not String.IsNullOrEmpty(html)) Then
             For Each x As String In GetScriptBodies(html)

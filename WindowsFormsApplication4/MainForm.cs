@@ -19,41 +19,48 @@ namespace WindowsFormsApplication4
 
 		private void getHtmlButton_Click(object sender, EventArgs e)
 		{
-		    ThreadPool.QueueUserWorkItem(_=>StartRequest());
-		    getHtmlButton.Enabled = false;
+			ThreadPool.QueueUserWorkItem(_=>StartRequest());
+			getHtmlButton.Enabled = false;
 		}
 
-        private void StartRequest()
-        {
-            byte[] inputBuffer = new byte[1024000];
+		private void StartRequest()
+		{
+			byte[] inputBuffer = new byte[1024000];
 
-            var webRequest =
-                (HttpWebRequest) WebRequest.Create("http://google.ca");
-            webRequest.
-                BeginGetResponse(asyncResult =>
-                                     {
-                                         WebResponse response = webRequest.EndGetResponse(asyncResult);
-                                         Stream stream = response.GetResponseStream();
-                                         if (stream == null) return;
-                                         stream.
-                                             BeginReadToEnd(inputBuffer,
-                                                            0,
-                                                            inputBuffer.Length,
-                                                            readAsyncResult =>
-                                                                {
-                                                                    int bytesRead = stream.EndReadToEnd(readAsyncResult);
-                                                                    Trace.WriteLine(string.Format("Read {0} bytes",
-                                                                                                  bytesRead));
-                                                                    string text = Encoding.ASCII.GetString(inputBuffer,
-                                                                                                           0,
-                                                                                                           bytesRead);
-                                                                    SetData(text);
-                                                                    EnableButton();
-                                                                }, stream);
-                                     }, webRequest);
-        }
+			var webRequest =
+				(HttpWebRequest) WebRequest.Create("http://google.ca");
+			webRequest.
+				BeginGetResponse(
+					asyncResult =>
+						{
+							WebResponse response =
+								webRequest.EndGetResponse(asyncResult);
+							Stream stream = response.GetResponseStream();
+							if (stream == null) return;
+							stream.
+								BeginReadToEnd(inputBuffer,
+								               0,
+								               inputBuffer.Length,
+								               readAsyncResult =>
+									               {
+										               int bytesRead = stream.
+											               EndReadToEnd(readAsyncResult);
+										               Trace.WriteLine(
+											               string.Format("Read {0} bytes",
+											                             bytesRead));
+										               string text = Encoding.ASCII.
+											               GetString(inputBuffer, 0,
+											                         bytesRead);
+										               SetData(text);
+										               EnableButton();
+										               ((IDisposable)response).
+											               Dispose();
+									               }
+								               , stream);
+						}, webRequest);
+		}
 
-	    private void SetData(string html)
+		private void SetData(string html)
 		{
 			if (String.IsNullOrEmpty(html)) return;
 

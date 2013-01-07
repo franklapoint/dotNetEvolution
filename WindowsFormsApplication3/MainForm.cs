@@ -23,39 +23,48 @@ namespace WindowsFormsApplication3
 		    getHtmlButton.Enabled = false;
 		}
 
-	    private void StartRequest(object o)
-	    {
-	        byte[] inputBuffer = new byte[1024000];
+		private void StartRequest(object o)
+		{
+			byte[] inputBuffer = new byte[1024000];
 
-	        HttpWebRequest webRequest =
-	            (HttpWebRequest) WebRequest.Create("http://google.ca");
-	        webRequest.BeginGetResponse(delegate(IAsyncResult asyncResult)
-	                                        {
-	                                            WebResponse response = webRequest.EndGetResponse(asyncResult);
-	                                            Stream stream = response.GetResponseStream();
-	                                            if (stream == null) return;
-	                                            StreamHelper.BeginReadStreamToEnd(stream,
-	                                                                              inputBuffer,
-	                                                                              0,
-	                                                                              inputBuffer.Length,
-	                                                                              delegate(IAsyncResult readAsyncResult)
-	                                                                                  {
-	                                                                                      int bytesRead =
-	                                                                                          StreamHelper.EndReadStreamToEnd(
-	                                                                                              readAsyncResult);
-	                                                                                      Trace.WriteLine(
-	                                                                                          string.Format("Read {0} bytes",
-	                                                                                                        bytesRead));
-	                                                                                      string text =
-	                                                                                          Encoding.ASCII.GetString(
-	                                                                                              inputBuffer, 0, bytesRead);
-	                                                                                      SetData(text);
-	                                                                                      EnableButton();
-	                                                                                  }, stream);
-	                                        }, webRequest);
-	    }
+			HttpWebRequest webRequest =
+				(HttpWebRequest) WebRequest.Create("http://google.ca");
 
-	    private delegate void SetHtmlDelegate(string html);
+			webRequest.
+				BeginGetResponse(
+					delegate(IAsyncResult asyncResult)
+						{
+							WebResponse response =
+								webRequest.EndGetResponse(asyncResult);
+							Stream stream = response.GetResponseStream();
+							if (stream == null) return;
+							StreamHelper.
+								BeginReadStreamToEnd(stream,
+								                     inputBuffer,
+								                     0,
+								                     inputBuffer.Length,
+								                     delegate(IAsyncResult readAsyncResult)
+									                     {
+										                     int bytesRead = StreamHelper.
+											                     EndReadStreamToEnd(
+												                     readAsyncResult);
+										                     Trace.WriteLine(
+											                     string.Format(
+												                     "Read {0} bytes",
+												                     bytesRead));
+										                     string text = Encoding.ASCII.
+											                     GetString(inputBuffer, 0,
+											                               bytesRead);
+										                     SetData(text);
+										                     EnableButton();
+															 ((IDisposable)response).
+																 Dispose();
+									                     }
+								                     , stream);
+						}, webRequest);
+		}
+
+		private delegate void SetHtmlDelegate(string html);
 
 		private void SetData(string html)
 		{

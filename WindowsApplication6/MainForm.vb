@@ -17,8 +17,8 @@ Public Class MainForm
         Dim inputBuffer(1024000) As Byte
         Dim webRequest As HttpWebRequest = DirectCast(Net.WebRequest.Create("http://google.ca"), HttpWebRequest)
         webRequest.BeginGetResponse(Sub(asyncResult)
-                                        Dim webResponse As WebResponse = webRequest.EndGetResponse(asyncResult)
-                                        Dim stream As Stream = webResponse.GetResponseStream()
+                                        Dim response As WebResponse = webRequest.EndGetResponse(asyncResult)
+                                        Dim stream As Stream = response.GetResponseStream()
                                         Dim bytesRead As Task(Of Integer) = Task(Of Integer).Factory.FromAsync(
                                             AddressOf stream.BeginReadToEnd, AddressOf stream.EndReadToEnd, inputBuffer, 0, inputBuffer.Length, stream)
                                         Dim ui = TaskScheduler.FromCurrentSynchronizationContext()
@@ -27,6 +27,7 @@ Public Class MainForm
                                                                    Dim html = Encoding.ASCII.GetString(inputBuffer, 0, ar.Result)
                                                                    SetData(html)
                                                                    getHtmlButton.Enabled = True
+                                                                   DirectCast(response, IDisposable).Dispose()
                                                                End Sub, ui)
                                     End Sub, webRequest)
     End Sub

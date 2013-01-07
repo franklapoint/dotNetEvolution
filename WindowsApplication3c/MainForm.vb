@@ -52,6 +52,7 @@ Public Class MainForm
                                          Sub(ar As IAsyncResult)
                                              Dim bytesRead As Integer = StreamHelper.EndReadStreamToEnd(ar)
                                              Array.Resize(Of Byte)(numArray, bytesRead)
+                                             response.Dispose()
                                          End Sub, stream)
 
             While False = asyncResult.AsyncWaitHandle.WaitOne(200)

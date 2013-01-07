@@ -24,8 +24,7 @@ namespace WindowsFormsApplication3b
 			                                  	progressBar.Value = args.ProgressPercentage;
 			                                  };
 			webClient.
-				DownloadStringCompleted +=
-				(o, args) =>
+				DownloadStringCompleted += (o, args) =>
 				{
 					getHtmlButton.Enabled = true;
 					cancelButton.Visible = false;

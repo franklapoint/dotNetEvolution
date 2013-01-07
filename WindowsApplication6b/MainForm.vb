@@ -59,6 +59,7 @@ Public Class MainForm
                                         progressBar.Visible = True
                                         cancelButton.Enabled = False
                                         cancelButton.Visible = False
+                                        DirectCast(response, IDisposable).Dispose()
                                     End Sub, ui)
                 End Sub, request)
     End Sub

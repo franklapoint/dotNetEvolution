@@ -17,47 +17,51 @@ namespace WindowsFormsApplication6
 		{
 			InitializeComponent();
 		}
-        byte[] inputBuffer = new byte[1024000];
+		byte[] inputBuffer = new byte[1024000];
 
-        private void getHtmlButton_Click(object sender, EventArgs e)
-        {
-            var ui = TaskScheduler.FromCurrentSynchronizationContext();
-            ThreadPool.QueueUserWorkItem(_ => StartRequest(ui));
-            getHtmlButton.Enabled = false;
-        }
+		private void getHtmlButton_Click(object sender, EventArgs e)
+		{
+			var ui = TaskScheduler.FromCurrentSynchronizationContext();
+			ThreadPool.QueueUserWorkItem(_ => StartRequest(ui));
+			getHtmlButton.Enabled = false;
+		}
 
-	    private void StartRequest(TaskScheduler ui)
-	    {
-	        HttpWebRequest webRequest =
-	            (HttpWebRequest) WebRequest.Create("http://google.ca");
-	        webRequest.
-	            BeginGetResponse(asyncResult =>
-	                                 {
-	                                     WebResponse response = webRequest.EndGetResponse(asyncResult);
-	                                     Stream stream = response.GetResponseStream();
-	                                     if (stream == null) return;
-	                                     Task<int> bytesRead =
-	                                         Task<int>.Factory.
-	                                             FromAsync(stream.BeginReadToEnd,
-	                                                       stream.EndReadToEnd,
-	                                                       inputBuffer, 0, inputBuffer.Length,
-	                                                       stream);
+		private void StartRequest(TaskScheduler ui)
+		{
+			HttpWebRequest webRequest =
+				(HttpWebRequest) WebRequest.Create("http://google.ca");
+			webRequest.
+				BeginGetResponse(
+					asyncResult =>
+						{
+							WebResponse response =
+								webRequest.EndGetResponse(asyncResult);
+							Stream stream = response.GetResponseStream();
+							if (stream == null) return;
+							Task<int> bytesRead =
+								Task<int>.Factory.
+									FromAsync(stream.BeginReadToEnd,
+											  stream.EndReadToEnd,
+											  inputBuffer, 0, inputBuffer.Length,
+											  stream);
 
-	                                     bytesRead.ContinueWith(ar =>
-	                                                                {
-	                                                                    Trace.WriteLine(
-	                                                                        string.Format("Read {0} bytes",
-	                                                                                      ar.Result));
-	                                                                    string text =
-	                                                                        Encoding.ASCII.GetString(
-	                                                                            inputBuffer, 0, ar.Result);
-	                                                                    SetData(text);
-	                                                                    getHtmlButton.Enabled = true;
-	                                                                }, ui);
-	                                 }, webRequest);
-	    }
+							bytesRead.ContinueWith(
+								ar =>
+									{
+										Trace.WriteLine(
+											string.Format("Read {0} bytes",
+														  ar.Result));
+										string text = Encoding.ASCII.
+											GetString(inputBuffer, 0,
+													  ar.Result);
+										SetData(text);
+										getHtmlButton.Enabled = true;
+										((IDisposable)response).Dispose();
+									}, ui);
+						}, webRequest);
+		}
 
-	    private void SetData(string html)
+		private void SetData(string html)
 		{
 			listBox.Items.Clear();
 			if (String.IsNullOrEmpty(html)) return;

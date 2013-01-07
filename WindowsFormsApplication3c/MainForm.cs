@@ -29,45 +29,46 @@ namespace WindowsFormsApplication3c
 			cancelButton.Visible = true;
 		}
 
-        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            int progress = 1;
-            var backgroundWorker = (BackgroundWorker) sender;
-            backgroundWorker.ReportProgress(progress);
-            webRequest =
-                (HttpWebRequest)WebRequest.Create("http://www.gutenberg.org/files/1497/1497.txt");
-            try
-            {
-                var response = webRequest.GetResponse();
-                var stream = response.GetResponseStream();
-                byte[] inputBuffer = new byte[1024000];
-                var asyncResult = StreamHelper.
-                    BeginReadStreamToEnd(stream, inputBuffer, 0, inputBuffer.Length,
-                                         ar =>
-                                             {
-                                                 int bytesRead = StreamHelper.EndReadStreamToEnd(ar);
-                                                 Array.Resize(ref inputBuffer, bytesRead);
-                                             }, stream);
+		private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+		{
+			int progress = 1;
+			var backgroundWorker = (BackgroundWorker) sender;
+			backgroundWorker.ReportProgress(progress);
+			webRequest =
+				(HttpWebRequest)WebRequest.Create("http://www.gutenberg.org/files/1497/1497.txt");
+			try
+			{
+				var response = webRequest.GetResponse();
+				var stream = response.GetResponseStream();
+				byte[] inputBuffer = new byte[1024000];
+				var asyncResult = StreamHelper.
+					BeginReadStreamToEnd(stream, inputBuffer, 0, inputBuffer.Length,
+										 ar =>
+											 {
+												 int bytesRead = StreamHelper.EndReadStreamToEnd(ar);
+												 Array.Resize(ref inputBuffer, bytesRead);
+												 ((IDisposable) response).Dispose();
+											 }, stream);
 
-                while (false == asyncResult.AsyncWaitHandle.WaitOne(200))
-                {
-                    backgroundWorker.ReportProgress(progress);
-                    progress += (100 - progress)/2;
-                    if (!backgroundWorker.CancellationPending) continue;
-                    e.Cancel = true;
-                    return;
-                }
-                backgroundWorker.ReportProgress(100);
-                e.Result = Encoding.ASCII.GetString(inputBuffer, 0, inputBuffer.Length);
-            }
-            catch (WebException ex)
-            {
-                if (ex.Status != WebExceptionStatus.RequestCanceled) throw;
-                e.Cancel = true;
-            }
-        }
+				while (false == asyncResult.AsyncWaitHandle.WaitOne(200))
+				{
+					backgroundWorker.ReportProgress(progress);
+					progress += (100 - progress)/2;
+					if (!backgroundWorker.CancellationPending) continue;
+					e.Cancel = true;
+					return;
+				}
+				backgroundWorker.ReportProgress(100);
+				e.Result = Encoding.ASCII.GetString(inputBuffer, 0, inputBuffer.Length);
+			}
+			catch (WebException ex)
+			{
+				if (ex.Status != WebExceptionStatus.RequestCanceled) throw;
+				e.Cancel = true;
+			}
+		}
 
-	    private void backgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+		private void backgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
 			progressBar.Value = e.ProgressPercentage;
 		}
@@ -77,16 +78,16 @@ namespace WindowsFormsApplication3c
 			getHtmlButton.Enabled = true;
 			cancelButton.Visible = false;
 			webRequest = null;
-		    if (e.Cancelled)
-		    {
-		        MessageBox.Show("Cancelled");
-		        progressBar.Visible = false;
-		    }
-		    else
-		    {
-		        foreach (string x in GetScriptBodies((string) e.Result))
-		            listBox.Items.Add(x);
-		    }
+			if (e.Cancelled)
+			{
+				MessageBox.Show("Cancelled");
+				progressBar.Visible = false;
+			}
+			else
+			{
+				foreach (string x in GetScriptBodies((string) e.Result))
+					listBox.Items.Add(x);
+			}
 		}
 
 		private void cancelButton_Click(object sender, EventArgs e)

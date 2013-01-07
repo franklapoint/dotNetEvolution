@@ -44,11 +44,11 @@ namespace WindowsFormsApplication7b
 
             byte[] inputBuffer;
             int index = 0;
-            using (WebResponse webResponse = await webRequest.GetResponseAsync())
+            using (WebResponse response = await webRequest.GetResponseAsync())
             {
-                inputBuffer = new byte[webResponse.ContentLength];
+                inputBuffer = new byte[response.ContentLength];
 
-                Stream stream = webResponse.GetResponseStream();
+                Stream stream = response.GetResponseStream();
 
                 MyProgress progress = new MyProgress();
                 progress.ProgressChanged += progress_ProgressChanged;
