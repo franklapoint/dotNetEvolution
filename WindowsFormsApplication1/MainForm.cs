@@ -57,7 +57,6 @@ namespace WindowsFormsApplication1
 
 		private delegate void SetHtmlDelegate(string html);
 
-
 		private void SetData(string html)
 		{
 			if (String.IsNullOrEmpty(html)) return;
